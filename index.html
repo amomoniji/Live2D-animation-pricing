@@ -1,4 +1,494 @@
-<div class="qty-row">
-    <div class="label-content">單一物件純平移/旋轉 <span class="desc">(無網格變形，如光環轉動/符號浮動)</span></div>
-    <div class="qty-input-group"><input type="number" class="qty-item" data-price="200" value="0" min="0"><span class="price">+ NTD 200 /個 起</span></div>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V皮模型Live2D建模試算表單 (NTD)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: transparent;
+            color: #333;
+            line-height: 1.5;
+            padding: 15px;
+            font-size: 14px; 
+        }
+        .container {
+            max-width: 580px; 
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px; 
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.5em; 
+        }
+        .section {
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .section h3 {
+            font-size: 1.1em; 
+            color: #2980b9;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .section-note {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 12px;
+            line-height: 1.4;
+            background: #f1f2f6;
+            padding: 8px 10px;
+            border-radius: 6px;
+        }
+        .badge {
+            font-size: 0.75em;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: normal;
+            white-space: nowrap;
+        }
+        .badge-single { background: #ffebee; color: #c62828; }
+        .badge-multi { background: #e8f5e9; color: #2e7d32; }
+        
+        .sub-heading {
+            font-size: 0.95em;
+            color: #7f8c8d;
+            margin: 12px 0 8px 0;
+            font-weight: bold;
+            border-left: 3px solid #bdc3c7;
+            padding-left: 8px;
+        }
+        
+        label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        label:hover { background: #e9ecef; }
+        
+        .label-content { flex-grow: 1; margin-left: 10px; word-break: break-word; }
+        .desc { display: block; font-size: 0.85em; color: #7f8c8d; margin-top: 4px; line-height: 1.4; }
+        
+        .price {
+            color: #e67e22;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.05em; 
+            font-weight: bold;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+
+        .qty-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+        }
+        .qty-input-group {
+            display: flex;
+            align-items: center;
+        }
+        .qty-item {
+            width: 55px;
+            padding: 4px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+
+        .total-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding: 12px 20px;
+            background: #e1f5fe;
+            border-radius: 8px;
+            border: 2px dashed #03a9f4;
+            position: sticky;
+            bottom: 15px; 
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.1); 
+            z-index: 100;
+        }
+        .total-container > div:first-child {
+            font-size: 1em;
+            font-weight: bold;
+            color: #333;
+        }
+        .total-price {
+            font-size: 1.5em; 
+            color: #0288d1;
+            font-weight: bold;
+            margin-top: 0;
+        }
+
+        /* ===== 送出與複製按鈕樣式 ===== */
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 10px; 
+            margin-top: 15px;
+            background-color: #2980b9;
+            color: white;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .action-btn:hover { background-color: #1c5982; }
+        .action-btn:active { transform: scale(0.98); }
+
+        .copy-btn {
+            background-color: #27ae60;
+            margin-top: 8px;
+        }
+        .copy-btn:hover { background-color: #1e8449; }
+
+        /* 結果顯示區塊 */
+        #resultBox {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            background: #fff;
+            border: 2px solid #27ae60;
+            border-radius: 8px;
+        }
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9em;
+            resize: vertical;
+            background: #f9f9f9;
+        }
+
+        .note {
+            font-size: 0.85em;
+            color: #95a5a6;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        /* ===== 手機版專屬優化 (RWD) ===== */
+        @media (max-width: 600px) {
+            body { padding: 5px; background-color: transparent; font-size: 13px; } 
+            .container { padding: 12px 8px; border-radius: 8px; box-shadow: none; }
+            h2 { font-size: 1.3em; margin-bottom: 12px; }
+            .section h3 { font-size: 1.05em; flex-direction: column; align-items: flex-start; gap: 4px; }
+            .sub-heading { font-size: 0.9em; margin: 10px 0 6px 0; } 
+            .section-note { font-size: 0.8em; padding: 6px 8px; } 
+            .badge { font-size: 0.7em; } 
+            label { padding: 8px; align-items: flex-start; }
+            .label-content { margin-left: 6px; font-size: 0.95em; }
+            .desc { font-size: 0.8em; } 
+            .price { font-size: 0.95em; padding-left: 8px; margin-left: auto; }
+            .qty-row { flex-direction: column; align-items: flex-start; padding: 8px; }
+            .qty-input-group { width: 100%; justify-content: flex-end; margin-top: 6px; border-top: 1px dashed #ddd; padding-top: 6px; }
+
+            .total-container {
+                padding: 8px 12px;
+                bottom: 10px;
+                margin-top: 12px;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+            }
+            .total-container > div:first-child { font-size: 0.85em; }
+            .total-price { font-size: 1.1em; }
+            .action-btn { padding: 10px; font-size: 1em; margin-top: 12px; }
+            .note { font-size: 0.8em; } 
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>V皮模型Live2D建模試算表單 (NTD)</h2>
+
+    <form id="priceForm">
+        
+        <!-- 【頭部】 -->
+        <div class="section">
+            <h3>【頭部】轉動幅度 <span class="badge badge-single">單選</span></h3>
+            <div class="section-note">X軸 (左右轉頭 FaceAngleX)<br>Y軸 (抬頭低頭 FaceAngleY)<br>Z軸 (歪頭 FaceAngleZ)</div>
+            <label><input type="radio" name="head" value="0" checked><div class="label-content">無</div><span class="price">NTD 0</span></label>
+            <div class="sub-heading">◆ 小幅度</div>
+            <label><input type="radio" name="head" value="500"><div class="label-content">僅 X軸</div><span class="price">+ NTD 500 起</span></label>
+            <label><input type="radio" name="head" value="500"><div class="label-content">僅 Y軸</div><span class="price">+ NTD 500 起</span></label>
+            <label><input type="radio" name="head" value="300"><div class="label-content">僅 Z軸</div><span class="price">+ NTD 300 起</span></label>
+            <label><input type="radio" name="head" value="1500"><div class="label-content">X軸 + Y軸</div><span class="price">+ NTD 1,500 起</span></label>
+            <label><input type="radio" name="head" value="2000"><div class="label-content">X軸 + Y軸 + Z軸</div><span class="price">+ NTD 2,000 起</span></label>
+            <div class="sub-heading">◆ 大幅度</div>
+            <label><input type="radio" name="head" value="1000"><div class="label-content">僅 X軸</div><span class="price">+ NTD 1,000 起</span></label>
+            <label><input type="radio" name="head" value="1000"><div class="label-content">僅 Y軸</div><span class="price">+ NTD 1,000 起</span></label>
+            <label><input type="radio" name="head" value="1000"><div class="label-content">僅 Z軸</div><span class="price">+ NTD 1,000 起</span></label>
+            <label><input type="radio" name="head" value="3000"><div class="label-content">X軸 + Y軸</div><span class="price">+ NTD 3,000 起</span></label>
+            <label><input type="radio" name="head" value="2000"><div class="label-content">X軸 + Z軸</div><span class="price">+ NTD 2,000 起</span></label>
+            <label><input type="radio" name="head" value="4000"><div class="label-content">X軸 + Y軸 + Z軸</div><span class="price">+ NTD 4,000 起</span></label>
+        </div>
+
+        <!-- 【身體】 -->
+        <div class="section">
+            <h3>【身體】轉動幅度 <span class="badge badge-single">單選</span></h3>
+            <div class="section-note">左右轉身 FaceAngleX<br>微蹲或前傾斜 FaceAngleY<br>左右移動 FaceAngleZ</div>
+            <label><input type="radio" name="body" value="0" checked><div class="label-content">無</div><span class="price">NTD 0</span></label>
+            <label><input type="radio" name="body" value="1000"><div class="label-content">上半身：僅 X軸</div><span class="price">+ NTD 1,000 起</span></label>
+            <label><input type="radio" name="body" value="400"><div class="label-content">上半身：僅 Z軸</div><span class="price">+ NTD 400 起</span></label>
+            <label><input type="radio" name="body" value="1600"><div class="label-content">上半身：X軸 + Z軸</div><span class="price">+ NTD 1,600 起</span></label>
+            <label><input type="radio" name="body" value="3000"><div class="label-content">上半身：X軸 + Y軸 + Z軸</div><span class="price">+ NTD 3,000 起</span></label>
+            <label><input type="radio" name="body" value="10000"><div class="label-content">全身：X軸 + Y軸 + Z軸</div><span class="price">+ NTD 10,000 起</span></label>
+        </div>
+
+        <!-- 【嘴巴】 -->
+        <div class="section">
+            <h3>【嘴巴】 <span class="badge badge-single">單選</span></h3>
+            <label><input type="radio" name="mouthBase" value="0" checked><div class="label-content">無</div><span class="price">NTD 0</span></label>
+            <label><input type="radio" name="mouthBase" value="800"><div class="label-content">簡單 2*2 口型<span class="desc">嘴巴閉上笑/不笑；嘴巴打開笑/不笑</span></div><span class="price">+ NTD 800 起</span></label>
+            <label><input type="radio" name="mouthBase" value="1200"><div class="label-content">基礎 3*3 口型<span class="desc">嘴巴閉上笑/不笑；嘴巴打開笑/不笑；O型嘴；露齒微笑</span></div><span class="price">+ NTD 1,200 起</span></label>
+        </div>
+
+        <!-- 【嘴型加強】 -->
+        <div class="section">
+            <h3>【嘴巴加購】 <span class="badge badge-multi">可複選</span></h3>
+            <label>
+                <input type="checkbox" class="addon" value="1000">
+                <div class="label-content">吐舌頭(TongueOut)<span class="desc">限iOS, Android, RTX系列顯卡</span></div>
+                <span class="price">+ NTD 1,000 起</span>
+            </label>
+            <label>
+                <input type="checkbox" class="addon" value="400">
+                <div class="label-content">歪嘴(MouthX)<span class="desc">限iOS, Android, RTX系列顯卡</span></div>
+                <span class="price">+ NTD 400 起</span>
+            </label>
+            <label>
+                <input type="checkbox" class="addon" value="400">
+                <div class="label-content">鼓臉(CheekPuff)<span class="desc">限iOS only</span></div>
+                <span class="price">+ NTD 400 起</span>
+            </label>
+            <label>
+                <input type="checkbox" class="addon" value="1200">
+                <div class="label-content">AIUEO 語音口型<span class="desc">(VoiceA)/(VoiceI)/(VoiceU)/(VoiceE)/(VoiceO)/(VoiceSilence)<br>Vtuber Studios需開啟麥克風偵測</span></div>
+                <span class="price">+ NTD 1,200 起</span>
+            </label>
+            
+            <label>
+                <input type="checkbox" class="addon" value="3000">
+                <div class="label-content">
+                    VBridger 精緻嘴型
+                    <span class="desc">(需搭配VBridger否則無法面補顯示。含：鴨子嘴(Mouth Funnel) / 親嘟嘴(Mouth Pucker) / 聳嘴(Mouth Shrug) / 抿唇(Mouth Press Lip Open) / 下巴移動(JawOpen) / 鼓臉(CheekPuff) / 吐舌頭(TongueOut))</span>
+                </div>
+                <span class="price">+ NTD 3,000 起</span>
+            </label>
+        </div>
+
+        <!-- 【眼睛】 -->
+        <div class="section">
+            <h3>【眼睛】 <span class="badge badge-single">單選</span></h3>
+            <label><input type="radio" name="eyes" value="0" checked><div class="label-content">無</div><span class="price">NTD 0</span></label>
+            <label><input type="radio" name="eyes" value="500"><div class="label-content">基礎 (開閉眼/眼球XY)</div><span class="price">+ NTD 500 起</span></label>
+            <label><input type="radio" name="eyes" value="1000"><div class="label-content">進階 (開閉笑眼/眼球XY/睜大眼縮瞳)</div><span class="price">+ NTD 1,000 起</span></label>
+            <label><input type="radio" name="eyes" value="2500"><div class="label-content">精緻 (立體睫毛/眼球XY/睜大眼縮瞳/精緻瞳孔動態)</div><span class="price">+ NTD 2,500 起</span></label>
+        </div>
+
+        <!-- 【物理加強】 -->
+        <div class="section">
+            <h3>【物理加強】 <span class="badge badge-single">單選</span></h3>
+            <label><input type="radio" name="phys" value="0" checked><div class="label-content">無物理</div><span class="price">NTD 0</span></label>
+            <label><input type="radio" name="phys" value="1000"><div class="label-content">簡易</div><span class="price">+ NTD 1,000 起</span></label>
+            <label><input type="radio" name="phys" value="2000"><div class="label-content">基礎</div><span class="price">+ NTD 2,000 起</span></label>
+            <label><input type="radio" name="phys" value="3000"><div class="label-content">基礎加強 (較多段物理)</div><span class="price">+ NTD 3,000 起</span></label>
+            <label><input type="radio" name="phys" value="5000"><div class="label-content">精緻 (更多段物理/反光變色等效果)</div><span class="price">+ NTD 5,000 起</span></label>
+        </div>
+
+        <!-- 【數量加購】 -->
+        <div class="section">
+            <h3>【加購區】數量填寫</h3>
+            <div class="qty-row"><div class="label-content">單一物件純平移/旋轉 <span class="desc">(無網格變形，如光環轉動/符號浮動)</span></div><div class="qty-input-group"><input type="number" class="qty-item" data-price="200" value="0" min="0"><span class="price">+ NTD 200 /個 起</span></div></div>
+            <div class="qty-row"><div class="label-content">靜態表情</div><div class="qty-input-group"><input type="number" class="qty-item" data-price="200" value="0" min="0"><span class="price">+ NTD 200 /個 起</span></div></div>
+            <div class="qty-row"><div class="label-content">動態表情</div><div class="qty-input-group"><input type="number" class="qty-item" data-price="300" value="0" min="0"><span class="price">+ NTD 300 /個 起</span></div></div>
+            <div class="qty-row"><div class="label-content">配件 (獸耳/角/帽子XY)</div><div class="qty-input-group"><input type="number" class="qty-item" data-price="1000" value="0" min="0"><span class="price">+ NTD 1,000 /個 起</span></div></div>
+            <div class="qty-row"><div class="label-content">尾巴擺動綁呼吸</div><div class="qty-input-group"><input type="number" class="qty-item" data-price="1000" value="0" min="0"><span class="price">+ NTD 1,000 /條 起</span></div></div>
+            <div class="qty-row"><div class="label-content">換裝一套</div><div class="qty-input-group"><input type="number" class="qty-item" data-price="1500" value="0" min="0"><span class="price">+ NTD 1,500 /套 起</span></div></div>
+            <div class="qty-row"><div class="label-content">簡單物件開關</div><div class="qty-input-group"><input type="number" class="qty-item" data-price="200" value="0" min="0"><span class="price">+ NTD 200 /個 起</span></div></div>
+        </div>
+    </form>
+
+    <div class="total-container">
+        <div>初步預估總計</div>
+        <div class="total-price" id="totalDisplay">NTD 0</div>
+    </div>
+    
+    <!-- 產出文字按鈕 -->
+    <button id="generateBtn" class="action-btn">📝 產生委託明細與報價</button>
+    
+    <!-- 隱藏的結果顯示區塊 -->
+    <div id="resultBox">
+        <p style="color: #27ae60; font-weight: bold; margin-top: 0; font-size: 0.95em;">請點擊下方按鈕複製明細，並透過私訊/信件發送給我：</p>
+        <textarea id="summaryText" rows="12"></textarea>
+        <button id="copyBtn" class="action-btn copy-btn">📋 一鍵複製文字</button>
+    </div>
+    
+    <div class="note">
+        * 以上均為 NTD 報價。標示「起」之項目依拆圖複雜度調整。<br>
+        * 此估價僅供參考，最終報價請以私訊討論內容為準。
+    </div>
 </div>
+
+<script>
+    const form = document.getElementById('priceForm');
+    const totalDisplay = document.getElementById('totalDisplay');
+    const allInputs = form.querySelectorAll('input');
+    
+    // 按鈕與結果區塊
+    const generateBtn = document.getElementById('generateBtn');
+    const resultBox = document.getElementById('resultBox');
+    const summaryTextArea = document.getElementById('summaryText');
+    const copyBtn = document.getElementById('copyBtn');
+
+    // 取得乾淨的標籤文字
+    function getCleanLabelName(element) {
+        let clone = element.cloneNode(true);
+        let desc = clone.querySelector('.desc');
+        if (desc) clone.removeChild(desc);
+        return clone.innerText.trim();
+    }
+
+    // 計算總價
+    function calculateTotal() {
+        let total = 0;
+        document.querySelectorAll('input[type="radio"]:checked').forEach(r => { total += parseInt(r.value); });
+        document.querySelectorAll('.addon:checked').forEach(c => { total += parseInt(c.value); });
+        document.querySelectorAll('.qty-item').forEach(i => {
+            let q = parseInt(i.value) || 0;
+            if (q < 0) { q = 0; i.value = 0; }
+            total += (q * parseInt(i.getAttribute('data-price')));
+        });
+
+        if (total === 0) {
+            totalDisplay.innerText = 'NTD 0';
+        } else {
+            totalDisplay.innerText = 'NTD ' + total.toLocaleString() + ' 起';
+        }
+    }
+
+    // 產生文字明細
+    function generateText() {
+        let text = "建模師您好，以下是我透過網站試算的 Live2D 委託需求明細：\n\n";
+        text += "【需求項目明細】\n";
+
+        // 單選
+        document.querySelectorAll('input[type="radio"]:checked').forEach(r => {
+            if (parseInt(r.value) > 0) {
+                let sectionName = r.closest('.section').querySelector('h3').innerText.replace(' 單選', '').trim();
+                let itemName = getCleanLabelName(r.closest('label').querySelector('.label-content'));
+                
+                // 尋找最近的子標題
+                let subHeadingPrefix = '';
+                let prevNode = r.closest('label').previousElementSibling;
+                while (prevNode) {
+                    if (prevNode.classList.contains('sub-heading')) {
+                        subHeadingPrefix = ' (' + prevNode.innerText.replace('◆', '').trim() + ')';
+                        break;
+                    }
+                    if (prevNode.tagName === 'H3' || prevNode.classList.contains('section-note')) break;
+                    prevNode = prevNode.previousElementSibling;
+                }
+
+                text += `▪ ${sectionName}：${itemName}${subHeadingPrefix} (+NTD ${r.value})\n`;
+            }
+        });
+
+        // 複選
+        document.querySelectorAll('.addon:checked').forEach(c => {
+            let itemName = getCleanLabelName(c.closest('label').querySelector('.label-content'));
+            text += `▪ 加購：${itemName} (+NTD ${c.value})\n`;
+        });
+
+        // 數量
+        document.querySelectorAll('.qty-item').forEach(i => {
+            let q = parseInt(i.value) || 0;
+            if (q > 0) {
+                let itemName = i.closest('.qty-row').querySelector('.label-content').innerText;
+                let unitPrice = parseInt(i.getAttribute('data-price'));
+                text += `▪ 數量加購：${itemName} x ${q} (+NTD ${q * unitPrice})\n`;
+            }
+        });
+
+        // 總計
+        text += `\n====================\n`;
+        text += `【初步預估總計】：${totalDisplay.innerText}\n`;
+        text += `====================\n\n`;
+        text += `※ 其他需求或備註說明：\n(請在此輸入您的其他想法...)`;
+
+        // 顯示在畫面上
+        summaryTextArea.value = text;
+        resultBox.style.display = 'block';
+        
+        // 讓畫面自動捲動到結果區塊
+        resultBox.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+
+    // 解決 Wix iframe 限制的傳統複製功能
+    function copyText() {
+        summaryTextArea.focus();
+        summaryTextArea.select();
+        summaryTextArea.setSelectionRange(0, 99999); 
+
+        try {
+            document.execCommand('copy');
+            
+            let originalText = copyBtn.innerText;
+            copyBtn.innerText = "✅ 已成功複製文字！請前往私訊貼上";
+            copyBtn.style.backgroundColor = "#2ecc71";
+            
+            setTimeout(() => {
+                copyBtn.innerText = originalText;
+                copyBtn.style.backgroundColor = "#27ae60";
+            }, 3000);
+            
+            window.getSelection().removeAllRanges();
+            
+        } catch (err) {
+            alert("複製失敗，請手動長按框框內的文字全選並複製！");
+        }
+    }
+
+    // 事件綁定
+    allInputs.forEach(input => {
+        input.addEventListener('change', calculateTotal);
+        if(input.type === 'number') input.addEventListener('input', calculateTotal);
+    });
+
+    generateBtn.addEventListener('click', generateText);
+    copyBtn.addEventListener('click', copyText);
+
+    calculateTotal();
+</script>
+
+</body>
+</html>
